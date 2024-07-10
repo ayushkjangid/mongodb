@@ -1,0 +1,284 @@
+ here we group city and then ue project to what we show in output.
+1.->[
+  {
+    $group: {
+      _id:"$city",
+      countofcity:{$sum:1}
+    }
+  },
+  {
+    $project: {
+    city:"$_id",
+      countofcity:1,
+      _id:0
+    }
+  }
+]
+
+2.->[
+  {
+    $group: {
+      _id:"$city",
+      countofcity:{$sum:1}
+    }
+  },
+  {
+    $project: {
+    city:"$_id",
+      countofcity:1,
+      _id:0
+    }
+  }
+]
+
+#. $count
+	[{
+  	$match: {
+  	gender:"Female"
+  		}
+  		},
+  	{
+    	$count: 'total Female user'
+ 	 }
+  
+	]
+
+**difference between count and sum
+sum is for moe then one 
+sum is used baar baar where as count is used only ek baar 
+
+.->
+[
+{
+  $match: {city:"Jaipur",
+  gender:"Female"
+  }
+  },
+  {
+    $count: 'total Female user'
+  }
+  
+]
+
+*->to find n of male and female user in jaipur
+[
+{
+  $match: {city:"Jaipur",
+  }
+  },
+  {
+    $group: {
+      _id:"$gender",
+      noofuser:{$sum:1}
+    }
+  },
+]
+
+*->to find count of female usr of different cities
+[{
+  	$match: {gender:"Female"}
+  },
+  {
+    $group: 	{
+      _id:"$city",
+      noo_f_female_user:{$sum:1}
+   		 }
+  },
+]
+
+*->to fid no of female user who have skills java and are in New delhi.
+[
+{
+  $match: {gender:"Female",
+           city:"New Delhi",
+           skills:"Java"
+  }
+  },
+  {
+    $count:"totaluser"
+  }
+]
+
+
+*->
+[
+{
+  $match: {gender:"Female",
+           city:"Goa",
+           age:{"$gt":24},
+           skills:{$all:["Python","C++"]}}
+          
+  },
+  {
+    $count:"totaluser"
+  }
+]
+
+*->
+[{
+  $group: {
+    _id: "$role",
+    averagesal:{$avg:"$salary"},
+    minimal:{$min:"$salary"},
+    maximal:{$max:"$salary"}
+  }
+},
+ {
+   $project: {
+   role:"$_id",
+     averagesal:1,
+     minimal:1,
+     maximal:1
+   }
+ }
+]
+
+
+*->to find avg max and min salary of each city?
+[{
+  $group: {
+    _id: "$city",
+    averagesal:{$avg:"$salary"},
+    minimal:{$min:"$salary"},
+    maximal:{$max:"$salary"}
+  }
+},
+ {
+   $project: {
+   city:"$_id",
+     averagesal:1,
+     minimal:1,
+     maximal:1
+   }
+ }
+]
+
+*->to find female max ,in ,avg salary?
+[
+  {
+    $match: {
+    gender:"Female"
+    }
+  },
+  {
+  $group: {
+    _id: "$gender",
+    averagesal:{$avg:"$salary"},
+    minimal:{$min:"$salary"},
+    maximal:{$max:"$salary"}
+  }
+},
+ {
+   $project: {
+   gender:"$_id",
+     averagesal:1,
+     minimal:1,
+     maximal:1,
+
+    _id:0,
+   }
+ }
+]
+
+*->to find male max ,in ,avg salary?
+[
+  {
+    $match: {
+    gender:"Male"
+    }
+  },
+  {
+  $group: {
+    _id: "$gender",
+    averagesal:{$avg:"$salary"},
+    minimal:{$min:"$salary"},
+    maximal:{$max:"$salary"}
+  }
+},
+ {
+   $project: {
+   gender:"$_id",
+     averagesal:1,
+     minimal:1,
+     maximal:1,
+
+    _id:0,
+   }
+ }
+]
+-----------------------------------------------------------------------------------------------------
+*->to find all male avg ,max,min salary who have skills both Python and Java
+[
+  {
+    $match: {
+    gender:"Male",
+   skills:{"$in":["Java","Python"]},
+    }
+  },
+  {
+  $group: {
+    _id: "$gender",
+    averagesal:{$avg:"$salary"},
+    minimal:{$min:"$salary"},
+    maximal:{$max:"$salary"}
+  }
+},
+ {
+   $project: {
+   gender:"$_id",
+     averagesal:1,
+     minimal:1,
+     maximal:1,
+
+    _id:0,
+   }
+ }
+]
+------------------------------------------------------------------------------------------
+*->find all the usr who role is customer and email id should not contain @gmail.com
+[
+  {
+    $match: {role:"customer",
+    useremail:{$ne:"/@gmail.com/"}, 
+    }
+  },
+  {
+  $group: {
+    _id:null,
+    totoaluser:{$sum:1}
+  }
+},
+ {
+   $project: {
+     _id:0,
+     totoaluser:1,  
+   }
+ }
+]
+
+-----------------------------------------------------------------------------------------
+
+*->find the avg,max,min salary where uerhave atmost two skills?
+[
+  {
+    $match: {
+    "skills.2":{"$exists":false}, 
+    }
+  },
+  {
+  $group: {
+    _id:null,
+    maximum:{$max:"$salary"},
+    minimum:{$min:"$salary"},
+    avgmum:{$avg:"$salary"}
+  }
+},
+ {
+   $project: {
+     _id:0,
+     maximum:1,  
+     minimum:1,
+     avgmum:1
+   }
+ }
+]
