@@ -1,0 +1,266 @@
+11/07/2024
+
+A shard is a replica set that contains a subset of the cluster’s data.
+
+The mongos acts as a query router for client applications, handling both read and write operations. It dispatches client requests to the relevant shards and aggregates the result from shards into a consistent client response
+#Replica set-creating clone of particular set on the basis of something attribute.
+use-when we create a clone of different sets.
+(*$unwind*)command.
+
+
+*->to make a group on the basis of skills and count the no of user.
+[{
+  $unwind: "$skills"
+},
+ {
+   $group: {
+     _id: "$skills",
+     countuser:{$sum:1}
+   }
+ }
+
+]
+
+----------------------------------------------------------------------------------------
+*->to make a group on the basis of skills and count the no of user and also find max min avg salary of each skills users?
+
+
+[{
+  $unwind: "$skills"
+},
+ {
+   $group: {
+     _id: "$skills",
+     countuser:{$sum:1},
+     maxsalary:{$max:"$salary"},
+       minsalary:{$min:"$salary"},
+       avgsalary:{$avg:"$salary"},
+   }
+ }
+
+]
+
+---------------------------------------------------------------------------------------
+*->find the ang no of skill per user in each city.
+[{
+  $unwind: "$skills"
+},
+{
+  $group: {
+    _id:{skills:"$skills",city:"$city"},
+    skillcount:{$sum:1},
+    maxsalary:{$max:"$salary"},
+    }
+  }
+
+]
+
+
+---------------------------------------------------------------------------------------
+*->find the average skills of male anf=d female on the basis of gender
+
+[{
+  $unwind: "$skills"
+},
+{
+  $group: {
+    _id:{gender:"$gender",city:"$city"},
+    count:{$sum:1},
+    avgskills:{$avg:"$skills"}
+    }
+  }
+
+]
+
+-------------------------------------------------------------------------------------
+
+*->to find avg no of skills in each city on the basis of gender using addfields.
+[
+ {
+   $addFields: {
+   noofskills:{$size:"$skills"}, 
+   }
+ },
+  {
+  $group: {
+    _id: {city:"$city",gender:"$gender"},
+      avgskills:{$avg:"$noofskills"},
+    countup:{$sum:1} 
+  }
+  },
+  { $project: {
+      avgskills:1,
+      city:"$_id.city",
+     gender:"$_id.gender",
+    
+    }
+  }]
+
+
+-----------------------------------------------------------------------------------
+*->group user by role and collect all unqiue skill for each role
+[
+  {
+    $unwind:"$skills"
+  },
+  {
+  $group: {
+    _id:"$role",
+    skills:{$addToSet:"$skills"},
+    users:{$push:"$$ROOT"}
+  }
+  },
+  ]
+
+
+---------------------------------------------------------------------------------
+*->group the user on basis gender and collect the salary of users
+[
+  {
+  $group: {
+    _id:"$gender",
+    salaries:{$push:"$salary"},
+    users:{$push:"$$ROOT"}
+  }
+  },
+  ]
+
+-----------------------------------------------------------------------------------
+if we want to put all things in one object then we can do it in the form of 
+
+[
+  {
+  $group: {
+    _id:"$gender",
+    users:{$push:{username:"$username",
+                  salary:"$salary"}
+          }
+  }
+  },
+  ]
+
+here we send username and salary as an single object.
+
+
+output
+
+{
+  "_id": "Male",
+  "users": [
+    {
+      "salary": 300000,
+      "username": "Prajjal Dhar"
+    },
+    {
+      "username": "Sumanth Rao",
+      "salary": 700000
+    },
+    {
+      "username": "Vikram Patel",
+      "salary": 900000
+    },
+    {
+      "username": "Abhishek Verma",
+      "salary": 1000000
+    },
+    {
+      "username": "Rajesh Patel",
+      "salary": 1200000
+    },
+    {
+      "salary": 1500000,
+      "username": "Amit Singh"
+    },
+    {
+      "username": "Rahul Verma",
+      "salary": 700000
+    },
+    {
+      "salary": 900000,
+      "username": "Rahul Kumar"
+    },
+    {
+      "username": "Vishal Singh",
+      "salary": 750000
+    },
+    {
+      "username": "Sachin Patel",
+      "salary": 1900000
+    },
+    {
+      "salary": 450000,
+      "username": "Aryan Mishra"
+    }
+  ]
+}
+
+
+------------------------------------------------------------------------------------------
+*->group user by gender and collect their object id
+[
+  {
+  $group: {
+    _id:"$gender",
+    users:{$push:"_id"
+          },
+  }
+  },
+  ]
+
+---------------------------------------------------------------------------------------
+*->group user by skills and find to push username
+[
+  {
+    $unwind:"$skills",
+  },
+  {
+  $group: {
+    _id:"$gender",
+    users:{$push:"$$ROOT"},
+  }
+  },
+  ]
+-----------------------------------------------------------------------------------------
+*->group the user on the basis of city and collect all unique username
+[
+  {
+  $group: {
+    _id:"$city",
+    users:{$push:"$username"}
+          }
+  }
+  ]
+---------------------------------------------------------------------------------------
+*->group the user on the basis of city and collect username ,salary,age of user ?
+[
+  {
+  $group: {
+    _id:"$city",
+    users:{$push:{username:"$username",
+                  salary:"$salary",age:"$age"}
+          }
+  }
+  },
+  ]
+
+------------------------------------------------------------------------------------------
+*->bucket user by salary  ranges and calucate the total no of user each range
+[
+  {
+    $bucket: {
+      		groupBy: "$salary",
+      		boundaries: [ 0, 500000,1000000,1500000,2000000],
+      		default: "Other",
+      		output: {
+        		count:{$sum:1},
+        		user:{$push:{
+			name:"$username",
+        		salary:"$salary",
+        				}                 
+        			}
+      			}		
+    		}
+  	}
+]
+------------------------------------------------------------------------------------------
+
